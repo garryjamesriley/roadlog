@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#18a66a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="RoadLog"><link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22RoadLog%22%2C%22short_name%22%3A%22RoadLog%22%2C%22display%22%3A%22standalone%22%2C%22start_url%22%3A%22.%22%2C%22background_color%22%3A%22%230b1116%22%2C%22theme_color%22%3A%22%2318a66a%22%7D">
+<title>RoadLog — Vehicle Management</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#081219;--surface:#101b23;--surface2:#14222c;--surface3:#0d171e;
+  --text:#f5f7f8;--muted:#8fa2ad;--line:#263946;
+  --accent:#16c784;--accent2:#0b8d5a;--warn:#f0b64d;--danger:#ef6262;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#050b10}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+button,input,select,textarea{font:inherit}
+button{color:inherit}
+#app{min-height:100vh;background:#050b10}
+.phone{
+  width:min(430px,100%);min-height:100vh;margin:auto;background:var(--bg);
+  position:relative;padding-bottom:88px;overflow-x:hidden;
+}
+.top{
+  padding:18px 18px 7px;display:flex;justify-content:space-between;align-items:center
+}
+.brand{font-weight:900;letter-spacing:-1px;font-size:25px}
+.brand span{color:var(--accent)}
+.icon{
+  border:0;background:#14232e;border-radius:50%;width:42px;height:42px;
+  display:grid;place-items:center;font-size:19px
+}
+.screen{padding:8px 12px 26px}
+.eyebrow{
+  color:#8da5b1;font-size:11px;font-weight:850;text-transform:uppercase;
+  letter-spacing:.09em
+}
+.title{
+  font-size:30px;line-height:1.05;margin:5px 0 20px;font-weight:900;
+  letter-spacing:-1.5px
+}
+.tile{
+  background:var(--surface);border:1px solid var(--line);border-radius:20px;
+  padding:15px;cursor:pointer;box-shadow:0 7px 20px #00000018
+}
+.tile:active,.btn:active,.nav button:active{transform:scale(.985)}
+.vehicle-picker{padding:15px;margin-bottom:18px}
+.picker-title{font-size:17px;font-weight:850;margin-top:4px}
+.row{
+  display:flex;align-items:center;justify-content:space-between;padding:13px 0;
+  border-bottom:1px solid var(--line)
+}
+.row:last-child{border-bottom:0}
+.row-left{display:flex;gap:11px;align-items:center}
+.mini{
+  width:40px;height:40px;border-radius:12px;background:#162733;
+  display:grid;place-items:center
+}
+.row small{color:var(--muted);display:block;margin-top:3px}
+.pill{
+  font-size:11px;font-weight:850;padding:7px 10px;border-radius:20px;
+  background:#16c78420;color:#55e0a7;white-space:nowrap
+}
+.pill.warn{background:#f0b64d1d;color:var(--warn)}
+.pill.danger{background:#ef62621d;color:var(--danger)}
+.link{color:var(--accent);font-size:12px;font-weight:850;cursor:pointer}
+.vehicle-card{
+  background:linear-gradient(145deg,#0b3427 0%,#08754b 56%,#0a9a61 100%);
+  color:#fff;border-radius:25px;padding:20px 18px;min-height:225px;
+  position:relative;overflow:hidden;box-shadow:0 18px 38px #075c3b35;
+  cursor:pointer
+}
+.vehicle-card:before{
+  content:'';position:absolute;width:210px;height:210px;border-radius:50%;
+  right:-80px;top:-100px;background:#ffffff10
+}
+.vehicle-card:after{
+  content:'🚙';position:absolute;right:2px;bottom:-30px;font-size:135px;
+  opacity:.12;filter:grayscale(1)
+}
+.vehicle-name{font-size:25px;font-weight:900;letter-spacing:-.7px;position:relative;z-index:1}
+.vehicle-meta{opacity:.82;font-size:12px;margin-top:5px;position:relative;z-index:1}
+.plate{
+  display:inline-block;background:#f8f8f2;color:#15191c;border-radius:7px;
+  padding:5px 10px;font-weight:900;font-size:12px;margin-top:13px;
+  letter-spacing:.04em;position:relative;z-index:1
+}
+.stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:17px;
+  position:relative;z-index:1
+}
+.stat{
+  background:#ffffff13;border:1px solid #ffffff20;border-radius:13px;padding:10px
+}
+.stat b{display:block;font-size:15px}
+.stat small{opacity:.72;font-size:9px;text-transform:uppercase;letter-spacing:.04em}
+.section-head{
+  display:flex;justify-content:space-between;align-items:center;margin:25px 0 11px
+}
+.section-head h3{margin:0;font-size:16px;letter-spacing:-.2px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.grid .tile{min-height:112px}
+.tile .emoji{font-size:23px}
+.tile b{display:block;margin-top:9px;font-size:14px}
+.tile span{font-size:11px;color:var(--muted)}
+.reports-grid{display:grid;grid-template-columns:1fr;gap:9px}
+.report-tile{
+  background:#101c25;border:1px solid #253947;border-radius:16px;padding:13px;
+  display:flex;align-items:center;gap:12px;cursor:pointer
+}
+.report-icon{
+  width:39px;height:39px;border-radius:12px;background:#172a35;
+  display:grid;place-items:center;font-size:19px
+}
+.report-tile b{font-size:13px}.report-tile span{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.btn{
+  border:0;border-radius:14px;padding:13px 16px;background:var(--accent);
+  color:#03130d;font-weight:900;cursor:pointer;width:100%;font-size:14px
+}
+.btn.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--line)}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.form{display:grid;gap:12px}
+.field label{display:block;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:6px;text-transform:uppercase}
+.field input,.field select,.field textarea{
+  width:100%;border:1px solid var(--line);background:var(--surface2);color:var(--text);
+  border-radius:12px;padding:12px
+}
+.back{display:flex;gap:7px;align-items:center;color:var(--muted);font-size:13px;cursor:pointer;margin-bottom:15px}
+.cost{font-size:30px;font-weight:850;letter-spacing:-1px}
+.chart{height:120px;display:flex;align-items:flex-end;gap:8px;padding:12px 5px 0;background:var(--surface2);border-radius:16px}
+.bar{flex:1;background:var(--accent);border-radius:7px 7px 2px 2px;opacity:.75}
+.bottom{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100%);
+  height:82px;background:#0b151cee;backdrop-filter:blur(18px);
+  border-top:1px solid #263946;display:grid;grid-template-columns:repeat(4,1fr);z-index:5
+}
+.nav button{border:0;background:none;color:#8799a5;font-size:10px;font-weight:750;cursor:pointer}
+.nav button.active{color:var(--accent)}
+.nav i{font-style:normal;display:block;font-size:21px;margin-bottom:3px}
+.toast{
+  position:fixed;left:50%;bottom:96px;transform:translateX(-50%);
+  background:#15232d;color:#fff;padding:11px 15px;border-radius:12px;font-size:12px;
+  opacity:0;pointer-events:none;transition:.25s;z-index:9
+}
+.toast.show{opacity:1}
+.empty{padding:35px 10px;text-align:center;color:var(--muted)}
+@media(min-width:700px){
+  body{padding:25px 0}.phone{border-radius:28px;min-height:860px;box-shadow:0 25px 80px #0008}
+}
+</style>
+<style>
+:root{
+  --bg:#06111b; --surface:#091927; --surface2:#0d2030; --surface3:#10283a;
+  --text:#f5f8fb; --muted:#9db5ca; --line:#244663;
+  --accent:#08d995; --accent2:#0a9f6e; --blue:#4c9cff;
+}
+body{background:#030b12}
+.phone{
+  width:min(887px,100%); min-height:100vh; background:
+  radial-gradient(circle at 88% 17%,#102a3e55 0 16%,transparent 32%),
+  linear-gradient(180deg,#06111b 0%,#06121d 100%);
+  padding-bottom:100px;
+}
+.screen{padding:22px 5.4% 34px}
+.top{
+  display:flex !important; padding:18px 5.4% 4px; align-items:center;
+  background:transparent;
+}
+.brand-wrap{display:flex;align-items:center;gap:12px}
+.brand-mark{
+  width:58px;height:58px;border-radius:16px;display:grid;place-items:center;
+  font-size:40px;font-weight:1000;color:#fff;background:linear-gradient(135deg,#fff 0 26%,transparent 27%);
+  position:relative;overflow:hidden;
+}
+.brand-mark:after{content:"▲";position:absolute;color:#08d995;font-size:42px;right:2px;bottom:-7px;transform:scaleX(.72)}
+.brand{font-size:31px;font-weight:950;letter-spacing:-1.8px}
+.brand span{color:#08d995}
+.tagline{font-size:11px;color:#8eaac1;font-weight:800;letter-spacing:.12em;margin-top:3px}
+.header-icons{display:flex;gap:10px;margin-left:auto}
+.header-icon{
+  width:48px;height:48px;border-radius:50%;border:0;background:#16283a;
+  display:grid;place-items:center;font-size:22px
+}
+.header-icon.profile{font-size:25px;color:#dce8f2}
+.title{
+  font-size:54px;line-height:1;margin:7px 0 34px;font-weight:950;letter-spacing:-2.7px
+}
+.eyebrow{font-size:12px;font-weight:900;letter-spacing:.08em;color:#a9c0d4}
+.vehicle-picker{
+  border:1.5px solid #294b68;border-radius:25px;background:#071725cc;
+  padding:20px 18px 17px;margin-bottom:24px
+}
+.picker-title{font-size:24px;font-weight:900;letter-spacing:-.7px;margin-top:4px}
+.picker-arrow{font-size:30px;color:#dbe8f2}
+.row.vehicle-choice{
+  border:1.5px solid #294b68!important;border-radius:21px!important;
+  padding:13px 15px!important;margin-top:13px!important;background:#071522!important;
+}
+.row.vehicle-choice.active{
+  border-color:#08d995!important;background:#061d25!important;box-shadow:0 0 0 1px #08d99533 inset
+}
+.row.vehicle-choice{transition:.18s ease;border-color:#294b68!important}
+.row.vehicle-choice:hover{border-color:#4a7190!important}
+.row.vehicle-choice .mini{
+  width:58px;height:58px;border-radius:15px;background:#162b3d;
+  border:1px solid #2e4d68;font-size:27px
+}
+.row.vehicle-choice b{font-size:20px}
+.row.vehicle-choice small{font-size:16px;color:#9db8ce}
+.row.vehicle-choice .pill{
+  font-size:15px;padding:10px 16px;background:#0a9f70;color:#fff
+}
+.row.vehicle-choice .link{
+  border:1px solid #8cb4d6;border-radius:20px;padding:9px 18px;font-size:15px;color:#fff
+}
+.vehicle-card{
+  min-height:340px;border-radius:28px;padding:23px 18px 18px;
+  background:linear-gradient(130deg,#06412f 0%,#008f61 54%,#05bb78 100%);
+  border:1.5px solid #08d995;box-shadow:none;overflow:hidden
+}
+.vehicle-card:before{
+  width:420px;height:250px;right:-100px;top:-130px;background:#ffffff0c
+}
+.vehicle-card:after{display:none}
+.vehicle-name{font-size:39px;letter-spacing:-1.8px}
+.vehicle-meta{font-size:18px;color:#fff;opacity:.95}
+.plate{font-size:18px;padding:8px 13px;border-radius:8px;margin-top:17px}
+.truck-art{
+  position:absolute;right:-2px;top:34px;width:47%;max-width:390px;
+  opacity:1;mix-blend-mode:screen;z-index:0
+}
+.truck-art img{width:100%;display:block;border-radius:12px}
+.stats{gap:12px;margin-top:24px}
+.stat{
+  padding:15px;border-radius:18px;background:#ffffff0c;border:1.5px solid #0be19b;
+  min-height:86px
+}
+.stat b{font-size:24px}.stat small{font-size:12px;color:#d0e3ec}
+.section-head{margin:30px 0 13px}
+.section-head h3{font-size:25px;letter-spacing:-.6px}
+.link{font-size:16px}
+.grid{gap:14px}
+.grid .tile{
+  min-height:145px;border-radius:21px;border:1.5px solid #294b68;
+  background:#081827;padding:17px
+}
+.tile .emoji{font-size:29px}
+.tile b{font-size:19px;margin-top:12px}.tile span{font-size:15px;color:#a9bfd1}
+.reports-grid{grid-template-columns:repeat(6,1fr);gap:12px}
+.report-tile{
+  border-radius:18px;padding:15px;border:1.5px solid #294b68;background:#081827;
+  min-height:86px
+}
+.report-tile:nth-child(-n+3){grid-column:span 2}
+.report-tile:nth-child(n+4){grid-column:span 3}
+.report-icon{width:42px;height:42px;border-radius:50%;font-size:21px}
+.report-tile b{font-size:16px}.report-tile span{font-size:12px}
+.bottom{
+  width:min(887px,100%);height:92px;background:#06111df5;border-top:1px solid #29445c;
+  backdrop-filter:blur(20px)
+}
+.nav button{font-size:14px}.nav i{font-size:28px;margin-bottom:4px}
+@media(max-width:650px){
+  .top{padding:15px 18px 0}.screen{padding:18px 14px 28px}
+  .brand{font-size:25px}.brand-mark{width:45px;height:45px;font-size:31px}
+  .tagline{font-size:9px}.header-icon{width:40px;height:40px}
+  .title{font-size:34px;letter-spacing:-1.7px;margin-bottom:22px}
+  .picker-title{font-size:19px}.vehicle-picker{padding:16px 14px;border-radius:21px}
+  .row.vehicle-choice b{font-size:16px}.row.vehicle-choice small{font-size:13px}
+  .row.vehicle-choice .mini{width:47px;height:47px;font-size:22px}
+  .row.vehicle-choice .pill{font-size:11px;padding:8px 10px}
+  .row.vehicle-choice .link{font-size:12px;padding:7px 13px}
+  .vehicle-card{min-height:250px;padding:18px 15px}
+  .vehicle-name{font-size:28px}.vehicle-meta{font-size:14px}.plate{font-size:14px}
+  .truck-art{top:48px;width:49%}.stats{gap:7px;margin-top:16px}
+  .stat{padding:10px;border-radius:14px;min-height:65px}.stat b{font-size:16px}.stat small{font-size:9px}
+  .section-head{margin:23px 0 10px}.section-head h3{font-size:20px}
+  .grid{gap:10px}.grid .tile{min-height:112px;border-radius:17px;padding:13px}
+  .tile .emoji{font-size:23px}.tile b{font-size:15px;margin-top:8px}.tile span{font-size:11px}
+  .reports-grid{grid-template-columns:1fr 1fr}.report-tile,.report-tile:nth-child(-n+3),.report-tile:nth-child(n+4){grid-column:auto}
+  .report-tile{min-height:80px;padding:11px}.report-icon{width:34px;height:34px;font-size:17px}
+  .report-tile b{font-size:12px}.report-tile span{font-size:9px}
+}
+</style>
+</head><body><div id="app"><div class="phone"><header class="top">
+  <div class="brand-wrap">
+    <div class="brand-mark">A</div>
+    <div><div class="brand">Road<span>Log</span></div><div class="tagline">TRACK • MANAGE • SAVE</div></div>
+  </div>
+  <div class="header-icons">
+    <button class="header-icon" onclick="toast('Notifications — 2 reminders due')">♧</button>
+    <button class="header-icon profile" onclick="toast('Profile')">●</button>
+  </div>
+</header><main id="screen" class="screen"></main><nav class="bottom nav"><button data-tab="home" onclick="go('home')"><i>⌂</i>Home</button><button data-tab="vehicles" onclick="go('vehicles')"><i>🚙</i>Vehicles</button><button data-tab="costs" onclick="go('costs')"><i>▤</i>Costs</button><button data-tab="more" onclick="go('more')"><i>•••</i>More</button></nav><div id="toast" class="toast"></div></div></div>
+<script>
+const saved=JSON.parse(localStorage.getItem('roadlog_state')||'null');
+const state=saved||{fuel:185,maintenance:320,repairs:860,odometer:142350,activeVehicleId:'v1',vehicles:[{id:'v1',make:'Toyota',model:'Hilux',year:2021,rego:'ABC123',fuelType:'Diesel',odometer:142350,vin:'',fuel:185,maintenance:320,repairs:860}]};
+if(!state.vehicles)state.vehicles=[{id:'v1',make:'Toyota',model:'Hilux',year:2021,rego:'ABC123',fuelType:'Diesel',odometer:state.odometer||142350,vin:'',fuel:state.fuel||185,maintenance:state.maintenance||320,repairs:state.repairs||860}];
+if(!state.activeVehicleId)state.activeVehicleId=state.vehicles[0].id;
+function activeVehicle(){return state.vehicles.find(v=>v.id===state.activeVehicleId)||state.vehicles[0]}
+function sync(){const v=activeVehicle();if(v){state.odometer=v.odometer;state.fuel=v.fuel;state.maintenance=v.maintenance;state.repairs=v.repairs}}
+function persist(){sync();localStorage.setItem('roadlog_state',JSON.stringify(state))}
+function currentTime(){return new Intl.DateTimeFormat('en-NZ',{hour:'numeric',minute:'2-digit',hour12:true}).format(new Date())}
+function selectVehicle(id){
+  state.activeVehicleId=id;
+  save();
+  const v=activeVehicle();
+  toast(`${v.make} ${v.model} selected`);
+  render();
+}
+function addVehicle(){screen.innerHTML=`<div class="back" onclick="go('vehicles')">‹ Back to vehicles</div><div class="eyebrow">Garage</div><h1 class="title">Add vehicle</h1><div class="form"><div class="field"><label>Make</label><input id="vMake" value="Toyota"></div><div class="field"><label>Model</label><input id="vModel" value="RAV4"></div><div class="field"><label>Year</label><input id="vYear" type="number" value="2024"></div><div class="field"><label>Registration</label><input id="vRego" value="XYZ789"></div><div class="field"><label>Fuel type</label><select id="vFuel"><option>Petrol</option><option>Diesel</option><option>Hybrid</option><option>EV</option></select></div><div class="field"><label>Odometer (km)</label><input id="vOdo" type="number" value="50000"></div><div class="field"><label>VIN (optional)</label><input id="vVin"></div><button class="btn" onclick="saveVehicle()">Save vehicle</button></div>`}
+function saveVehicle(){const v={id:'v'+Date.now(),make:document.getElementById('vMake').value.trim()||'Vehicle',model:document.getElementById('vModel').value.trim()||'Model',year:+document.getElementById('vYear').value||new Date().getFullYear(),rego:document.getElementById('vRego').value.trim().toUpperCase()||'—',fuelType:document.getElementById('vFuel').value,odometer:+document.getElementById('vOdo').value||0,vin:document.getElementById('vVin').value.trim(),fuel:0,maintenance:0,repairs:0,fuelRecords:[]};state.vehicles.push(v);state.activeVehicleId=v.id;persist();toast('Vehicle added');setTimeout(()=>go('vehicles'),450)}
+function deleteVehicle(id){if(state.vehicles.length===1){toast('Keep at least one vehicle');return}state.vehicles=state.vehicles.filter(v=>v.id!==id);if(state.activeVehicleId===id)state.activeVehicleId=state.vehicles[0].id;persist();go('vehicles')}
+const screen=document.getElementById('screen');
+function go(page){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===page));
+ if(page==='home')home(); else if(page==='vehicles')vehicles(); else if(page==='costs')costs(); else more();}
+function openGaspy(){const fallback='https://gaspy.nz';const ua=navigator.userAgent||'';if(/Android/i.test(ua)){let opened=false;const onBlur=()=>{opened=true;window.removeEventListener('blur',onBlur)};window.addEventListener('blur',onBlur);window.location.href='intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=nz.hwem.gaspy;end';setTimeout(()=>{window.removeEventListener('blur',onBlur);if(!opened)window.open(fallback,'_blank','noopener,noreferrer')},1500)}else if(/iPhone|iPad|iPod/i.test(ua)){window.location.href='https://www.gaspy.nz/'}else{window.open(fallback,'_blank','noopener,noreferrer')}}
+function home(){
+const v=activeVehicle();
+const picker=state.vehicles.map(x=>`<div class="row vehicle-choice ${x.id===state.activeVehicleId?'active':''}" onclick="selectVehicle('${x.id}')">
+<div class="row-left"><div class="mini">${x.model==='RAV4'?'🚗':'🛻'}</div><div><b>${x.make} ${x.model}</b><small>${x.rego} &nbsp;•&nbsp; ${x.odometer.toLocaleString()} km</small></div></div>
+${x.id===state.activeVehicleId?'<span class="pill">✓ Driving</span>':'<span class="link">Select</span>'}</div>`).join('');
+
+screen.innerHTML=`
+<div class="eyebrow">SUNDAY, 27 SEPTEMBER</div>
+<h1 class="title">Good afternoon</h1>
+
+<div class="vehicle-picker" id="vehicleSelector">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><div class="eyebrow">BEFORE YOU START</div><div class="picker-title">Which vehicle are you driving?</div><div style="font-size:11px;color:#86a9c2;margin-top:4px">Tap a vehicle to make it the active vehicle</div></div>
+    <div class="picker-arrow">›</div>
+  </div>
+  ${picker}
+</div>
+
+<div class="vehicle-card" onclick="vehicle()">
+  <div style="position:relative;z-index:2">
+    <div class="eyebrow" style="color:#d7fff1">DRIVING NOW</div>
+    <div class="vehicle-name">${v.make} ${v.model}</div>
+    <div class="vehicle-meta">${v.year} &nbsp;•&nbsp; ${v.fuelType} &nbsp;•&nbsp; ${v.odometer.toLocaleString()} km</div>
+    <div class="plate">${v.rego}</div>
+  </div>
+  <div class="truck-art"><img src="${truck_uri}" alt="Toyota Hilux illustration"></div>
+  <div class="stats" style="position:absolute;left:18px;right:18px;bottom:18px">
+    <div class="stat"><b>⛽ &nbsp;${v.fuelType==='EV'?'—':'12.1'}</b><small>${v.fuelType==='EV'?'kWh/100KM':'L/100KM'}</small></div>
+    <div class="stat"><b>💲 &nbsp;$0.31</b><small>COST / KM</small></div>
+    <div class="stat"><b>🛡️ &nbsp;Good</b><small>STATUS</small></div>
+  </div>
+</div>
+
+<div class="section-head"><h3>Quick actions</h3><span class="link" onclick="vehicle()">View vehicle &nbsp;›</span></div>
+<div class="grid">
+  <div class="tile" onclick="fuel()"><div class="emoji">⛽</div><b>Add fuel</b><span>Record a fill-up</span><span style="float:right;font-size:22px;color:#dbe8f2">›</span></div>
+  <div class="tile" onclick="maintenance()"><div class="emoji">🔧</div><b>Maintenance</b><span>Service & upkeep</span><span style="float:right;font-size:22px;color:#dbe8f2">›</span></div>
+  <div class="tile" onclick="repair()"><div class="emoji">🛠️</div><b>Log repair</b><span>Track repairs & faults</span><span style="float:right;font-size:22px;color:#dbe8f2">›</span></div>
+  <div class="tile" onclick="reminders()"><div class="emoji">🔔</div><b>Reminders</b><span>WOF, rego, service & more</span><span style="float:right;font-size:22px;color:#dbe8f2">›</span></div>
+</div>
+
+<div class="section-head"><h3>Reports</h3><span class="link" onclick="go('costs')">View all &nbsp;›</span></div>
+<div class="reports-grid">
+  <div class="report-tile" onclick="vehicle()"><div class="report-icon">🚙</div><div><b>Vehicle Report</b><span>Vehicle history & costs</span></div><span style="margin-left:auto">›</span></div>
+  <div class="report-tile" onclick="fuel()"><div class="report-icon">⛽</div><div><b>Fuel Report</b><span>Fuel usage & economy</span></div><span style="margin-left:auto">›</span></div>
+  <div class="report-tile" onclick="costs()"><div class="report-icon">💲</div><div><b>Cost Report</b><span>Running costs & $/km</span></div><span style="margin-left:auto">›</span></div>
+  <div class="report-tile" onclick="tracking()"><div class="report-icon">📍</div><div><b>Trip Report</b><span>Distance & business/private</span></div><span style="margin-left:auto">›</span></div>
+  <div class="report-tile" onclick="reminders()"><div class="report-icon">🛡️</div><div><b>Compliance Report</b><span>WOF, rego, RUC & insurance</span></div><span style="margin-left:auto">›</span></div>
+</div>
+`;
+}
+function vehicles(){const v=activeVehicle();screen.innerHTML=`<div class="eyebrow">Garage</div><h1 class="title">My vehicles</h1>${state.vehicles.map(x=>`<div class="vehicle-card" style="margin-bottom:12px;cursor:pointer" onclick="selectVehicle('${x.id}')"><div class="vehicle-name">${x.make} ${x.model}</div><div class="vehicle-meta">${x.year} • ${x.fuelType} • ${x.odometer.toLocaleString()} km</div><div class="plate">${x.rego}</div><div class="stats"><div class="stat"><b>${x.fuelType==='EV'?'—':'12.1'}</b><small>${x.fuelType==='EV'?'kWh/100km':'L/100km'}</small></div><div class="stat"><b>$${(x.fuel+x.maintenance+x.repairs).toLocaleString()}</b><small>recorded cost</small></div><div class="stat"><b>${x.id===state.activeVehicleId?'Active':'Select'}</b><small>vehicle</small></div></div></div>`).join('')}<div class="btnrow"><button class="btn" onclick="addVehicle()">+ Add vehicle</button><button class="btn secondary" onclick="vehicle()">Open selected</button></div><div class="section-head"><h3>Selected vehicle</h3></div><div class="row"><div class="row-left"><div class="mini">🔑</div><div><b>VIN</b><small>${v.vin||'Not entered'}</small></div></div></div><div class="row"><div class="row-left"><div class="mini">📍</div><div><b>Tracking</b><small>Last trip: 18.4 km</small></div></div><span class="pill">Ready</span></div>`}
+function vehicle(){const v=activeVehicle();screen.innerHTML=`<div class="back" onclick="go('vehicles')">‹ Back to vehicles</div><div class="eyebrow">Vehicle profile</div><h1 class="title">${v.make} ${v.model}</h1><div class="vehicle-card"><div class="vehicle-name">${v.rego}</div><div class="vehicle-meta">${v.year} • ${v.fuelType}</div><div class="plate">${v.odometer.toLocaleString()} km</div></div><div class="section-head"><h3>Vehicle details</h3></div><div class="row"><div class="row-left"><div class="mini">🔑</div><div><b>VIN</b><small>${v.vin||'Not entered'}</small></div></div></div><div class="row"><div class="row-left"><div class="mini">⛽</div><div><b>Fuel type</b><small>${v.fuelType}</small></div></div></div><div class="section-head"><h3>Manage vehicle</h3></div><div class="grid"><div class="tile" onclick="fuel()"><div class="emoji">⛽</div><b>Fuel</b><span>Usage & spend</span></div><div class="tile" onclick="maintenance()"><div class="emoji">🔧</div><b>Maintenance</b><span>Service history</span></div><div class="tile" onclick="repair()"><div class="emoji">🛠️</div><b>Repairs</b><span>Faults & costs</span></div><div class="tile" onclick="tracking()"><div class="emoji">📍</div><b>Trips</b><span>Vehicle movement</span></div></div><div class="section-head"><h3>Vehicle actions</h3></div><button class="btn secondary" onclick="deleteVehicle('${v.id}')">Remove this vehicle</button>`}
+function fuel(){const v=activeVehicle(),records=v.fuelRecords||[];const history=records.map(r=>`<div class="row"><div class="row-left"><div class="mini">⛽</div><div><b>${r.station||'Fuel station'}</b><small>${r.date} • ${Number(r.litres).toFixed(1)} L • ${Number(r.odo).toLocaleString()} km</small></div></div><b>$${Number(r.cost||0).toFixed(2)}</b></div>`).join('');screen.innerHTML=`<div class="back" onclick="go('home')">‹ Back</div><div class="eyebrow">Fuel</div><h1 class="title">${v.make} ${v.model}</h1><div class="vehicle-card" style="min-height:145px"><div class="vehicle-name">$${Number(v.fuel||0).toFixed(2)} recorded</div><div class="vehicle-meta">Fuel spend for this vehicle • ${v.odometer.toLocaleString()} km</div><div class="stats"><div class="stat"><b>${records.reduce((a,r)=>a+Number(r.litres||0),0).toFixed(1)} L</b><small>fuel recorded</small></div><div class="stat"><b>${records.length?('$'+(records.reduce((a,r)=>a+Number(r.cost||0),0)/records.reduce((a,r)=>a+Number(r.litres||0),0)).toFixed(2)):'—'}</b><small>avg / litre</small></div><div class="stat"><b>${records.length}</b><small>fill-ups</small></div></div></div><div class="section-head"><h3>Fuel history</h3><span class="link" onclick="addFuel()">+ Add fuel</span></div>${history||'<div class="empty">No fuel entries for this vehicle yet.</div>'}<div class="section-head"><h3>Monthly spend</h3></div><div class="chart"><div class="bar" style="height:45%"></div><div class="bar" style="height:62%"></div><div class="bar" style="height:52%"></div><div class="bar" style="height:74%"></div><div class="bar" style="height:68%"></div><div class="bar" style="height:85%"></div></div>`}
+function addFuel(){screen.innerHTML=`<div class="back" onclick="fuel()">‹ Back to fuel</div><div class="eyebrow">New entry</div><h1 class="title">Add fuel</h1><div class="form"><div class="field"><label>Litres</label><input id="litres" type="number" value="55"></div><div class="field"><label>Total cost (NZD)</label><input id="price" type="number" value="112.75"></div><div class="field"><label>Odometer (km)</label><input id="odo" type="number" value="${state.odometer}"></div><div class="field"><label>Station</label><input value="Z Energy"></div><button class="btn" onclick="saveFuel()">Save fuel entry</button></div>`}
+function saveFuel(){const v=activeVehicle(),litres=+document.getElementById('litres').value||0,cost=+document.getElementById('price').value||0,o=+document.getElementById('odo').value||v.odometer,station=document.querySelectorAll('.form .field')[3].querySelector('input').value.trim();v.odometer=Math.max(v.odometer,o);v.fuel=(v.fuel||0)+cost;if(!v.fuelRecords)v.fuelRecords=[];v.fuelRecords.unshift({date:new Date().toISOString().slice(0,10),litres,cost,odo:o,station});persist();toast('Fuel entry saved');setTimeout(fuel,450)}
+function maintenance(){const v=activeVehicle(),records=v.maintenanceRecords||[];const history=records.map(r=>`<div class="row"><div class="row-left"><div class="mini">🔧</div><div><b>${r.work}</b><small>${r.date} • ${Number(r.odo).toLocaleString()} km${r.workshop?' • '+r.workshop:''}</small></div></div><b>$${Number(r.cost||0).toLocaleString()}</b></div>`).join('');screen.innerHTML=`<div class="back" onclick="go('home')">‹ Back</div><div class="eyebrow">Maintenance</div><h1 class="title">Service & upkeep</h1><div class="section-head"><h3>Next due</h3><span class="pill">1,200 km</span></div><div class="tile"><div class="emoji">🔧</div><b>Regular service</b><span>Oil, filters, inspection</span><div class="btnrow"><button class="btn" onclick="addMaintenance()">Log service</button><button class="btn secondary" onclick="toast('Reminder set for 143,550 km')">Set reminder</button></div></div><div class="section-head"><h3>Service history</h3></div>${history||'<div class="empty">No maintenance records yet.</div>'}<div class="section-head"><h3>Previous records</h3></div><div class="row"><div class="row-left"><div class="mini">🔧</div><div><b>Major service</b><small>12 May 2026 • 138,420 km</small></div></div><b>$420</b></div><div class="row"><div class="row-left"><div class="mini">🛞</div><div><b>Front tyres</b><small>2 Feb 2026 • 132,810 km</small></div></div><b>$680</b></div>`}
+function addMaintenance(){screen.innerHTML=`<div class="back" onclick="maintenance()">‹ Back</div><div class="eyebrow">New record</div><h1 class="title">Log maintenance</h1><div class="form"><div class="field"><label>Work performed</label><input value="Regular service"></div><div class="field"><label>Odometer</label><input type="number" value="${state.odometer}"></div><div class="field"><label>Cost (NZD)</label><input type="number" value="320"></div><div class="field"><label>Workshop</label><input value="My Mechanic"></div><div class="field"><label>Notes</label><textarea rows="3">Oil and filters replaced</textarea></div><button class="btn" onclick="toast('Maintenance record saved');setTimeout(maintenance,450)">Save maintenance</button></div>`}
+function saveMaintenance(){const v=activeVehicle(),fields=document.querySelectorAll('.form .field');const work=fields[0].querySelector('input').value.trim()||'Maintenance';const odo=+fields[1].querySelector('input').value||v.odometer;const cost=+fields[2].querySelector('input').value||0;const workshop=fields[3].querySelector('input').value.trim();const notes=fields[4].querySelector('textarea').value.trim();v.odometer=Math.max(v.odometer,odo);v.maintenance+=cost;if(!v.maintenanceRecords)v.maintenanceRecords=[];v.maintenanceRecords.unshift({date:new Date().toISOString().slice(0,10),work,odo,cost,workshop,notes});persist();toast('Maintenance record saved');setTimeout(maintenance,450)}
+function addMaintenance(){screen.innerHTML=`<div class="back" onclick="maintenance()">‹ Back</div><div class="eyebrow">New record</div><h1 class="title">Log maintenance</h1><div class="form"><div class="field"><label>Work performed</label><input id="mWork" value="Regular service"></div><div class="field"><label>Odometer</label><input id="mOdo" type="number" value="${state.odometer}"></div><div class="field"><label>Cost (NZD)</label><input id="mCost" type="number" value="320"></div><div class="field"><label>Workshop</label><input id="mWorkshop" value="My Mechanic"></div><div class="field"><label>Notes</label><textarea id="mNotes" rows="3">Oil and filters replaced</textarea></div><button class="btn" onclick="saveMaintenance()">Save maintenance</button></div>`}
+function repair(){const v=activeVehicle(),records=v.repairRecords||[];const history=records.map(r=>`<div class="row"><div class="row-left"><div class="mini">🛠️</div><div><b>${r.problem}</b><small>${r.date} • ${Number(r.odo).toLocaleString()} km • ${r.status}</small></div></div><b>$${Number(r.cost||0).toLocaleString()}</b></div>`).join('');screen.innerHTML=`<div class="back" onclick="go('home')">‹ Back</div><div class="eyebrow">Repairs</div><h1 class="title">Repairs & faults</h1><button class="btn" onclick="addRepair()">+ Log a repair</button><div class="section-head"><h3>Saved repairs</h3></div>${history||'<div class="empty">No repairs recorded yet.</div>'}<div class="section-head"><h3>Previous records</h3></div><div class="row"><div class="row-left"><div class="mini">🛠️</div><div><b>Brake pads</b><small>21 Jul 2026 • Front • Completed</small></div></div><b>$480</b></div><div class="row"><div class="row-left"><div class="mini">⚠️</div><div><b>Engine warning</b><small>3 Mar 2026 • Diagnostic • Completed</small></div></div><b>$180</b></div><div class="row"><div class="row-left"><div class="mini">🛞</div><div><b>Puncture</b><small>14 Jan 2026 • Rear • Completed</small></div></div><b>$95</b></div>`}
+function saveRepair(){const v=activeVehicle(),fields=document.querySelectorAll('.form .field');const problem=fields[0].querySelector('input').value.trim()||'Repair';const odo=+fields[1].querySelector('input').value||v.odometer;const cost=+fields[2].querySelector('input').value||0;const status=fields[3].querySelector('select').value;const notes=fields[4].querySelector('textarea').value.trim();v.odometer=Math.max(v.odometer,odo);v.repairs+=cost;if(!v.repairRecords)v.repairRecords=[];v.repairRecords.unshift({date:new Date().toISOString().slice(0,10),problem,odo,cost,status,notes});persist();toast('Repair saved');setTimeout(repair,450)}
+function addRepair(){screen.innerHTML=`<div class="back" onclick="repair()">‹ Back</div><div class="eyebrow">New repair</div><h1 class="title">Log a repair</h1><div class="form"><div class="field"><label>Problem / repair</label><input id="rProblem" value="Brake pads"></div><div class="field"><label>Odometer</label><input id="rOdo" type="number" value="${state.odometer}"></div><div class="field"><label>Cost (NZD)</label><input id="rCost" type="number" value="480"></div><div class="field"><label>Status</label><select id="rStatus"><option>Completed</option><option>In progress</option><option>Waiting for parts</option></select></div><div class="field"><label>Notes</label><textarea id="rNotes" rows="3">Front brake pads replaced</textarea></div><button class="btn" onclick="saveRepair()">Save repair</button></div>`}
+function reminders(){screen.innerHTML=`<div class="back" onclick="go('home')">‹ Back</div><div class="eyebrow">Reminders</div><h1 class="title">Upcoming</h1><div class="row"><div class="row-left"><div class="mini">🔧</div><div><b>Regular service</b><small>Due at 143,550 km</small></div></div><span class="pill">1,200 km</span></div><div class="row"><div class="row-left"><div class="mini">📋</div><div><b>WOF</b><small>Expires 14 Dec 2026</small></div></div><span class="pill warn">82 days</span></div><div class="row"><div class="row-left"><div class="mini">🛞</div><div><b>Tyre inspection</b><small>Due at 144,350 km</small></div></div><span class="pill">2,000 km</span></div>`}
+function costs(){screen.innerHTML=`<div class="eyebrow">Running costs</div><h1 class="title">Vehicle costs</h1><div class="vehicle-card"><div class="eyebrow" style="color:#ffffffaa">2026 total</div><div class="cost">$6,920</div><div class="vehicle-meta">$0.31 per kilometre</div></div><div class="section-head"><h3>Cost breakdown</h3></div><div class="row"><div class="row-left"><div class="mini">⛽</div><div><b>Fuel</b><small>69.7% of total</small></div></div><b>$4,820</b></div><div class="row"><div class="row-left"><div class="mini">🔧</div><div><b>Maintenance</b><small>17.9% of total</small></div></div><b>$1,240</b></div><div class="row"><div class="row-left"><div class="mini">🛠️</div><div><b>Repairs</b><small>12.4% of total</small></div></div><b>$860</b></div><div class="section-head"><h3>Monthly trend</h3></div><div class="chart"><div class="bar" style="height:42%"></div><div class="bar" style="height:58%"></div><div class="bar" style="height:47%"></div><div class="bar" style="height:65%"></div><div class="bar" style="height:74%"></div><div class="bar" style="height:82%"></div></div>`}
+function tracking(){screen.innerHTML=`<div class="back" onclick="vehicle()">‹ Back</div><div class="eyebrow">Vehicle movement</div><h1 class="title">Trips</h1><div class="tile"><div class="emoji">📍</div><b>Tracking active</b><span>Last update 4 minutes ago</span><div style="margin-top:15px;background:var(--surface);border-radius:14px;height:145px;display:grid;place-items:center;font-size:42px">🗺️</div></div><div class="section-head"><h3>Recent trips</h3></div><div class="row"><div class="row-left"><div class="mini">→</div><div><b>Work → Home</b><small>18.4 km • 27 min</small></div></div><span class="pill">Today</span></div><div class="row"><div class="row-left"><div class="mini">→</div><div><b>Home → Work</b><small>21.1 km • 31 min</small></div></div><span class="pill">Today</span></div>`}
+function more(){screen.innerHTML=`<div class="eyebrow">Settings</div><h1 class="title">More</h1><div class="row"><div class="row-left"><div class="mini">👤</div><div><b>Drivers</b><small>Manage driver access</small></div></div><span>›</span></div><div class="row"><div class="row-left"><div class="mini">📄</div><div><b>Documents</b><small>Invoices, WOF & service records</small></div></div><span>›</span></div><div class="row"><div class="row-left"><div class="mini">⚙️</div><div><b>App settings</b><small>Notifications & preferences</small></div></div><span>›</span></div><div class="row"><div class="row-left"><div class="mini">🏢</div><div><b>Fleet mode</b><small>Coming in Version 2</small></div></div><span class="pill">Soon</span></div>`}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+go('home');
+</script></body></html>
